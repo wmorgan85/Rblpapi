@@ -1,0 +1,107 @@
+---
+title: "Rblpapi Cookbook"
+author: "Morgan Williams"
+date: "2016-06-21"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Rblpapi Cookbook}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+library(Rblpapi)
+library(dplyr)
+```
+
+## Examples
+
+This will be a working document that showcases some interesting ways in which Bloomberg data can be combined and used as part of an R based analysis. 
+
+## Converting ISINs to Ticker
+
+When using ISINs (or other identifiers such as CUSIP or FIGI) to request data you have to ensure that they are appropriately prefixed. The way to do this is using ```/<type>/<identifier>```. Here's an example: 
+
+```{r}
+ticker <- "/ISIN/GB00BH4HKS39"
+bdp(ticker, "PX_LAST")
+```
+
+In the same way, we can convert ISINs to the more easily interpretable ticker syntax. This can change when working with bonds versus equities but here are two examples:
+
+```{r}
+eqy_ticker <- "/ISIN/GB00BH4HKS39"
+bond_ticker <- "/ISIN/XS0169888558"
+
+eqy_fields <- c("EQY_PRIM_SECURITY_TICKER", "EQY_PRIM_SECURITY_COMP_EXCH")
+bond_fields <- c("SECURITY_DES")
+
+eqy <- bdp(eqy_ticker, eqy_fields)
+eqy$ticker <- paste(eqy[1], eqy[2], "Equity")
+
+bond <- bdp(bond_ticker, bond_fields)
+bond$ticker <- paste(bond[1], "Corp")
+```
+
+## Bond Aggregation
+```{r}
+bonds <- bsrch("FI:UK Banks")
+bonds$id <- as.character(bonds$id)
+bond_data <- bdp(bonds$id, 
+                 c("SECURITY_DES","GICS_SECTOR_NAME", "AMT_OUTSTANDING", "ISSUER"))
+grouped_bonds <- group_by(bond_data, ISSUER) %>%
+    summarise("TOTAL_ISSUANCE" = sum(AMT_OUTSTANDING))
+top_issuer <- grouped_bonds[order(desc(grouped_bonds$TOTAL_ISSUANCE)),1][1,]
+```
+
+## Options Volatility surface
+
+```{r}
+option_tickers <- bds("SPX Index", "CHAIN_TICKERS", 
+                      overrides=c("CHAIN_POINTS_OVRD"="11"))
+option_tickers$Ticker <- paste(option_tickers$Ticker, "Index")
+bdp(option_tickers$Ticker, "PX_BID")
+
+```
+
+## Acknowledgements
+
+Thank you to all the hard work of all those who have contributed, not least Dirk Eddebuettel, John Laing and Whit Armstrong without whom the package would not be anywhere near where it is today.
+
+## Legal
+
+All trademarks and registered trademarks are the property of their respective owners.
+
+All code of the [Rblpapi package](https://github.com/Rblp/Rblpapi) (ie
+directories `src/`, `R/`, ...) is released under the
+[GNU GPL-3](http://www.gnu.org/licenses/gpl-3.0.en.html).
+
+All code retrieved from the [blp](https://github.com/Rblp/blp) repository
+during build is released by Bloomberg, available at the
+[BloombergLabs API](http://www.bloomberglabs.com/api/libraries/) site
+and released under the license included below.
+
+```
+Copyright 2012. Bloomberg Finance L.P.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this proprietary software and associated documentation files (the "Software"),
+to use, publish, or distribute copies of the Software, and to permit persons to
+whom the Software is furnished to do so.
+
+Any other use, including modifying, adapting, reverse engineering, decompiling,
+or disassembling, is not permitted.
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
