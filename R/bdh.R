@@ -49,8 +49,56 @@
 ##' a single data frame. Note that the order of securities returned
 ##' is determined by the backend and may be different from the order
 ##' of securities in the \code{securities} field.
-##' @seealso For historical futures series, see \sQuote{DOCS #2072138 <GO>}
+##' @seealso For historical futures series, see
+##' \href{http://blinks.bloomberg.com/screens/DOCS 2072138}{DOCS 2072138}
 ##' on the Bloomberg terminal about selecting different rolling conventions.
+##' @details Here are the details of the available optional parameters
+##' in order of frequency of use:
+##' \itemize{
+##'     \item {
+##'         periodicityAdjustment - accepts "ACTUAL", "CALENDAR", "FISCAL"
+##'
+##'         This controls the calendar type used for periodicity, default
+##'         is "ACTUAL".
+##'     },
+##'     \item {
+##'         periodicitySelection - accepts "DAILY", "WEEKLY", "MONTHLY", "QUARTERLY",
+##' "SEMI_ANNUALLY", "YEARLY".
+##'
+##'         This controls the periodicity of the data returned,
+##'         default is generally "DAILY", though can change depending on
+##'         the series requested.
+##'     }
+##' }
+##'
+##'
+##' currency - accepts 3-character ISO code, e.g. "USD", "GBP". This controls the
+##' currency of the data returned.
+##' calendarCodeOverride - accepts the 2-character code from the
+##' \sQuote{CDR<GO>} function on Bloomberg, e.g. "US" or "5D". This controls the
+##' behaviour for non-trading days when looking at daily time series. These
+##' can be combined using '&' and '|' symbols to denote intersection or union
+##' of trading holidays, e.g. "US|JN" would show data on days where either
+##' the US or Japan were trading. "US&JN" would show data on days where both the
+##' US and Japan were trading.
+##' adjustmentFollowDPDF - accepts TRUE, FALSE. This controls whether the
+##' data is returned following your \sQuote{DPDF<GO>} settings on Bloomberg.
+##' Use it in combination with the follow parameters to adjust your data.
+##' adjustmentNormal - accepts TRUE, FALSE. This controls whether you adjust
+##' historical data for regular dividends.
+##' adjustmentAbnormal - accepts TRUE, FALSE. This controls whether you adjust
+##' historical data for irregular dividends.
+##' adjustmentSplit - accepts TRUE, FALSE. This controls whether you adjust
+##' historical data for corporate actions that affect the shares outstanding,
+##' such as stock splits, stock dividends, rights offerings or spin-offs.
+##' returnRelativeDate - accepts TRUE, FALSE. Setting this to TRUE
+##' populates historical responses with an additional element reflecting
+##' the relative date, e.g. 2002 Q2.
+##' maxDataPoints - accepts an integer. This controls the maximum number of data
+##' points returned by a historical request, e.g. 100 would show the 100 most
+##' recent data points. It is useful when requesting data on infrequently
+##' priced securities. You can request an arbitrarily large time series, e.g.
+##' 5 years, then set this to 100 and you will receive at most 100 points.
 ##' @author Whit Armstrong and Dirk Eddelbuettel
 ##' @examples
 ##' \dontrun{
